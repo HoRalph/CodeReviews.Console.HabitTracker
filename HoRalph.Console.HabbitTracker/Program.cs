@@ -54,6 +54,8 @@ class Program
 
                 case "1": //view all records
                 ViewAll();
+                Console.WriteLine("\n\n Press any key to return to the menu.");
+                Console.ReadLine();
                 break;
 
                 case "2": //insert Record
@@ -61,16 +63,22 @@ class Program
                 break;
 
                 case "3": //Delete Record
-                DeleteRecord();
+                ViewAll();
+                Console.WriteLine();
+                DeleteRecordID();
+                //DeleteRecord();
                 break;
 
                 case "4": //Update Record
-                UpdateRecord();
+                ViewAll();
+                Console.WriteLine();
+                UpdateRecordID();
+                //UpdateRecord();
                 break;
                 
                 case "5": //drop table
                 DeleteTable();
-                return;
+                break;
 
                 default:
                 break;
@@ -109,8 +117,7 @@ class Program
                 }
             reader.Close();
             connection.Close();
-            Console.WriteLine("\n\n Press any key to return to the menu.");
-            Console.ReadLine();
+
         }
     }
     static void InsertRecord()
@@ -164,7 +171,7 @@ class Program
         {
             connection.Open();
             var tableCmd = connection.CreateCommand();
-            tableCmd.CommandText = @"DROP TABLE HABIT;";
+            tableCmd.CommandText = @"DELETE FROM HABIT;";
             tableCmd.ExecuteNonQuery();
             connection.Close();
         }
@@ -209,6 +216,31 @@ class Program
             connection.Close();
         }
     }
+        static void DeleteRecordID()
+        {
+            string IDDelete = null;
+            bool validDate = false;
+            string[] dateFormats = {"MM/dd/yyyy"};
+            CultureInfo enUS = new CultureInfo("en-US");
+            Console.WriteLine("Enter Habit ID to Delete. Enter Blank if you want to cancel delete.");
+            IDDelete = Console.ReadLine();
+            using(var connection = new SqliteConnection(connectionString))
+            {
+                connection.Open();
+                var tableCmd = connection.CreateCommand();
+                if ((IDDelete == "") || (IDDelete == null))
+                {
+                    Console.WriteLine("Cancel Delete request.");
+                }
+                else
+                {
+                    tableCmd.CommandText = @$"DELETE FROM HABIT
+                    WHERE habitID = '{IDDelete}';";
+                }
+                tableCmd.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
  static void UpdateRecord()
     {
         string?dateUpdate = null;
@@ -265,6 +297,55 @@ class Program
                 tableCmd.CommandText = @$"UPDATE HABIT
                                         {setOne}                
                                         WHERE date = '{dateUpdate}' AND habit = '{habitUpdate}';";
+            }
+            tableCmd.ExecuteNonQuery();
+            connection.Close();
+        }
+    }
+    static void UpdateRecordID()
+    {
+        string?IDUpdate = null;
+        bool validDate = false;   
+        string[] dateFormats = {"MM/dd/yyyy"};
+        CultureInfo enUS = new CultureInfo("en-US");   
+  
+            Console.WriteLine("Enter a Habit ID to update. Leave blank if you want to cancel update.");
+            IDUpdate = Console.ReadLine();
+
+ 
+        
+        Console.WriteLine("Enter the new unit. (leave blank if don't update unit)");
+        string?unitUpdate = Console.ReadLine();
+        Console.WriteLine("Enter the new Quantity. (leave blank if don't update quantity)");
+        string?QuantityUpdate = Console.ReadLine();
+        string?setOne=null;
+
+        if (((unitUpdate != null)|| (unitUpdate !="")) && ((QuantityUpdate != null)|| (QuantityUpdate !="")))
+        {
+            setOne = $"SET Units = '{unitUpdate}', Quantity = {QuantityUpdate}";
+        }
+        else if ((unitUpdate == null)|| (unitUpdate ==""))
+        {
+            setOne = $"SET Quantity = {QuantityUpdate}";
+        }
+        else if ((QuantityUpdate == null) || (QuantityUpdate ==""))
+        {
+            setOne = $"SET UNITS = {unitUpdate}";
+        }
+
+        using(var connection = new SqliteConnection(connectionString))
+        {
+            connection.Open();
+            var tableCmd = connection.CreateCommand();
+            if ((IDUpdate == "") || (IDUpdate == null))
+            {
+                Console.WriteLine("No records updated");
+            }
+            else
+            {
+                tableCmd.CommandText = @$"UPDATE HABIT
+                                        {setOne}                
+                                        WHERE HabitID = '{IDUpdate}';";
             }
             tableCmd.ExecuteNonQuery();
             connection.Close();
